@@ -1,7 +1,13 @@
 {
+  "childCanCustomizeLook" : true,
   "extraProtectedBundleIDs" : [],
   "greetingName" : "",
   "kioskEnabled" : true,
+  "look" : {
+    "background" : "playroom",
+    "pattern" : "plain",
+    "tileColors" : "activity"
+  },
   "tiles" : [
     {
       "accent" : "orange",

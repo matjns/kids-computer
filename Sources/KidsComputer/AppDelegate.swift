@@ -217,6 +217,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             model.cancelParentGate()
             return nil
         }
+        if event.keyCode == 53, model.lookPickerOpen, !command, !option, !control {
+            model.closeLookPicker(save: false)
+            return nil
+        }
         if model.isEnforcing && command && option && event.keyCode == 53 {
             return nil
         }
@@ -224,6 +228,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             return nil
         }
         if model.gate == .hidden,
+           !model.lookPickerOpen,
            !command, !option, !control,
            chars.count == 1,
            let digit = Int(chars),

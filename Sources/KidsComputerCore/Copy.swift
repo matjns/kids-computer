@@ -42,6 +42,7 @@ public enum KidCopy {
     public static let emptyActivities = "Nothing here yet. A parent can add activities."
     public static let configError = "The activity list could not be read. A parent can fix it."
     public static let oneMinuteLeft = "1 min left"
+    public static let lookNotSaved = "Your colors couldn't be saved. Ask a parent for help."
 
     public static func minutesLeft(_ minutes: Int) -> String {
         minutes == 1 ? oneMinuteLeft : "\(minutes) min left"
@@ -72,6 +73,6 @@ public enum KidCopy {
     }
 
     public static var fixedStrings: [String] {
-        [prompt, comingSoonBadge, seeYouTomorrow, lockPaused, settingsGrace, emptyActivities, configError, oneMinuteLeft]
+        [prompt, comingSoonBadge, seeYouTomorrow, lockPaused, settingsGrace, emptyActivities, configError, oneMinuteLeft, lookNotSaved]
     }
 }

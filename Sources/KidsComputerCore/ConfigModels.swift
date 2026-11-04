@@ -27,10 +27,6 @@ public enum TileAccent: String, Codable, CaseIterable, Hashable, Equatable {
     case pink
     case yellow
     case red
-
-    public var usesDarkText: Bool {
-        self == .yellow
-    }
 }
 
 public struct Tile: Codable, Equatable, Identifiable {
@@ -140,6 +136,10 @@ public struct LauncherConfig: Codable, Equatable {
     public var parentPasswordHash: String?
     public var extraProtectedBundleIDs: [String]
     public var tiles: [Tile]
+    /// Parent setting: may the child open "Make it mine"? On by default.
+    public var childCanCustomizeLook: Bool
+    /// The child's chosen colors and pattern for the home screen.
+    public var look: HomeLook
 
     public init(
         version: Int = 1,
@@ -148,7 +148,9 @@ public struct LauncherConfig: Codable, Equatable {
         warnBeforeMinutes: Int = 5,
         parentPasswordHash: String? = nil,
         extraProtectedBundleIDs: [String] = [],
-        tiles: [Tile]
+        tiles: [Tile],
+        childCanCustomizeLook: Bool = true,
+        look: HomeLook = .standard
     ) {
         self.version = version
         self.greetingName = greetingName
@@ -157,6 +159,8 @@ public struct LauncherConfig: Codable, Equatable {
         self.parentPasswordHash = parentPasswordHash
         self.extraProtectedBundleIDs = extraProtectedBundleIDs
         self.tiles = tiles
+        self.childCanCustomizeLook = childCanCustomizeLook
+        self.look = look
     }
 
     public init(from decoder: Decoder) throws {
@@ -169,6 +173,8 @@ public struct LauncherConfig: Codable, Equatable {
         parentPasswordHash = (hash?.isEmpty == false) ? hash : nil
         extraProtectedBundleIDs = try container.decodeIfPresent([String].self, forKey: .extraProtectedBundleIDs) ?? []
         tiles = try container.decode([Tile].self, forKey: .tiles)
+        childCanCustomizeLook = (try? container.decodeIfPresent(Bool.self, forKey: .childCanCustomizeLook)) ?? true
+        look = (try? container.decodeIfPresent(HomeLook.self, forKey: .look)) ?? .standard
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -180,11 +186,14 @@ public struct LauncherConfig: Codable, Equatable {
         try container.encodeIfPresent(parentPasswordHash, forKey: .parentPasswordHash)
         try container.encode(extraProtectedBundleIDs, forKey: .extraProtectedBundleIDs)
         try container.encode(tiles, forKey: .tiles)
+        try container.encode(childCanCustomizeLook, forKey: .childCanCustomizeLook)
+        try container.encode(look, forKey: .look)
     }
 
     private enum CodingKeys: String, CodingKey {
         case version, greetingName, kioskEnabled, warnBeforeMinutes
         case parentPasswordHash, extraProtectedBundleIDs, tiles
+        case childCanCustomizeLook, look
     }
 
     public static var starter: LauncherConfig {

@@ -38,11 +38,23 @@ After that, follow [docs/SETUP.md](docs/SETUP.md). That guide is the click-by-cl
 
 How to add another activity, and what each field in the tile list means, is in [docs/ADDING_APPS.md](docs/ADDING_APPS.md).
 
+## Make it mine
+
+The child can personalize the home screen without the parent password. A **Make it mine** button with a paint palette sits in the top-right corner, next to the clock. It opens a big, simple picker:
+
+- **Pick a background:** 11 bright colors, 4 gradients (Sunset, Lagoon, Rainbow, Space), or the original Playroom look.
+- **Add a pattern:** Plain, Stars, Dots, or Waves, drawn very faintly.
+- **Tile colors:** each activity's own color (Mix), or one color for every tile.
+
+The home screen changes live behind the picker. **All done** saves it, **Never mind** goes back, and **Start over** picks the original look. The choice is saved in `tiles.json` under `look`, so it survives a restart. The words on the home screen switch between dark and white text on their own, so they stay readable on every background.
+
+The picker only changes colors. It can't reach the activities, time limits, the desktop lock, files, other apps, or quitting. In parent mode, **Let the child customize the look** turns the button off (it's on by default), and **Reset look** puts the original look back.
+
 ## Parent mode
 
 Open parent mode with **Control-Option-Command-P** (hold Control, Option, and Command, then press P), or by tapping the small star in the top-left corner five times within four seconds. The first time, the launcher asks you to create a password. It stores a salted hash, not the password itself.
 
-From there you can add, remove, and reorder tiles, set a daily limit, change the greeting, pause the desktop lock, install the login items, and quit.
+From there you can add, remove, and reorder tiles, set a daily limit, change the greeting, turn the child's Make it mine button on or off, reset the look, pause the desktop lock, install the login items, and quit.
 
 If you forget the password while logged in as that user:
 

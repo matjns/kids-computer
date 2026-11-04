@@ -8,7 +8,7 @@ struct LauncherView: View {
 
     var body: some View {
         ZStack {
-            PlayroomBackground()
+            HomeBackground(look: model.displayedLook)
             VStack(alignment: .leading, spacing: 22) {
                 header
                 if model.showsLockPause {
@@ -39,13 +39,19 @@ struct LauncherView: View {
                     }
                     .accessibilityHidden(true)
                     Spacer()
+                    if model.childCanCustomizeLook, model.gate == .hidden, !model.lookPickerOpen {
+                        MakeItMineButton {
+                            model.openLookPicker()
+                        }
+                        .padding(.trailing, 12)
+                    }
                     TimelineView(.periodic(from: .now, by: 30)) { context in
                         Text(context.date, format: .dateTime.hour().minute())
                             .font(.system(size: 28, weight: .bold, design: .rounded))
                             .foregroundStyle(Color(red: 0.22, green: 0.26, blue: 0.38))
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
-                            .background(.white.opacity(0.55), in: Capsule())
+                            .background(.white.opacity(0.85), in: Capsule())
                     }
                 }
                 Spacer()
@@ -68,6 +74,15 @@ struct LauncherView: View {
                 }
             }
 
+            if model.lookPickerOpen, model.gate == .hidden {
+                Color.black.opacity(0.12)
+                    .ignoresSafeArea()
+                    .contentShape(Rectangle())
+                    .onTapGesture {}
+                LookPickerSheet(model: model)
+                    .padding(24)
+            }
+
             if model.gate != .hidden {
                 Color.black.opacity(0.28).ignoresSafeArea()
                 ParentSheet(model: model)
@@ -83,16 +98,21 @@ struct LauncherView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(Greeting.line(name: model.config.greetingName, at: context.date, calendar: .current))
                     .font(.system(size: 56, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color(red: 0.14, green: 0.16, blue: 0.28))
+                    .foregroundStyle(homeText)
                     .minimumScaleFactor(0.5)
                     .lineLimit(1)
                 Text(KidCopy.prompt)
-                    .font(.system(size: 26, weight: .medium, design: .rounded))
-                    .foregroundStyle(Color(red: 0.28, green: 0.32, blue: 0.45))
+                    .font(.system(size: 26, weight: .semibold, design: .rounded))
+                    .foregroundStyle(homeText)
             }
             .padding(.leading, 8)
             .padding(.top, 36)
         }
+    }
+
+    /// Dark or white, whichever reads best on the current background.
+    private var homeText: Color {
+        model.displayedLook.textTone.rgb.color
     }
 
     @ViewBuilder
@@ -101,13 +121,14 @@ struct LauncherView: View {
         if visible.isEmpty {
             Text(KidCopy.emptyActivities)
                 .font(.system(size: 28, weight: .semibold, design: .rounded))
-                .foregroundStyle(Color(red: 0.25, green: 0.28, blue: 0.38))
+                .foregroundStyle(homeText)
                 .frame(maxWidth: .infinity, minHeight: 240)
         } else {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 260, maximum: 420), spacing: 22)], spacing: 22) {
                 ForEach(visible) { tile in
                     TileCard(
                         tile: tile,
+                        accent: model.displayedLook.tileColors.accent(for: tile),
                         face: model.face(for: tile),
                         icon: icon(for: tile)
                     ) {
@@ -131,35 +152,6 @@ struct LauncherView: View {
     }
 }
 
-private struct PlayroomBackground: View {
-    var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 1.0, green: 0.95, blue: 0.86),
-                    Color(red: 0.80, green: 0.91, blue: 1.0),
-                    Color(red: 0.86, green: 0.95, blue: 0.88),
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            Circle()
-                .fill(Color(red: 1.0, green: 0.62, blue: 0.30).opacity(0.28))
-                .frame(width: 460)
-                .offset(x: -420, y: -260)
-            Circle()
-                .fill(Color(red: 0.45, green: 0.55, blue: 0.98).opacity(0.22))
-                .frame(width: 380)
-                .offset(x: 460, y: 240)
-            Circle()
-                .fill(Color(red: 0.35, green: 0.82, blue: 0.70).opacity(0.25))
-                .frame(width: 280)
-                .offset(x: 280, y: -280)
-        }
-        .ignoresSafeArea()
-    }
-}
-
 private struct StarTap: View {
     var action: () -> Void
 
@@ -175,6 +167,7 @@ private struct StarTap: View {
 
 private struct TileCard: View {
     var tile: Tile
+    var accent: TileAccent
     var face: TileFace
     var icon: NSImage?
     var action: () -> Void
@@ -202,7 +195,7 @@ private struct TileCard: View {
                 }
                 status
             }
-            .foregroundStyle(tile.accent.usesDarkText ? Color(red: 0.22, green: 0.16, blue: 0.05) : Color.white)
+            .foregroundStyle(accent.usesDarkText ? Color(red: 0.22, green: 0.16, blue: 0.05) : Color.white)
             .padding(22)
             .frame(maxWidth: .infinity, minHeight: 250)
             .background(background, in: RoundedRectangle(cornerRadius: 32, style: .continuous))
@@ -227,7 +220,7 @@ private struct TileCard: View {
     }
 
     private var background: Color {
-        tile.accent.color
+        accent.color
     }
 
     @ViewBuilder
@@ -299,16 +292,13 @@ private struct TilePressStyle: ButtonStyle {
 
 extension TileAccent {
     var color: Color {
-        switch self {
-        case .orange: return Color(red: 1.0, green: 0.48, blue: 0.20)
-        case .teal: return Color(red: 0.02, green: 0.60, blue: 0.56)
-        case .purple: return Color(red: 0.40, green: 0.34, blue: 0.93)
-        case .blue: return Color(red: 0.18, green: 0.44, blue: 0.95)
-        case .green: return Color(red: 0.14, green: 0.60, blue: 0.36)
-        case .pink: return Color(red: 0.91, green: 0.33, blue: 0.56)
-        case .yellow: return Color(red: 0.98, green: 0.76, blue: 0.18)
-        case .red: return Color(red: 0.90, green: 0.28, blue: 0.28)
-        }
+        rgb.color
+    }
+}
+
+extension RGB {
+    var color: Color {
+        Color(red: red, green: green, blue: blue)
     }
 }
 #endif

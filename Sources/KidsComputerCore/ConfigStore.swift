@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(Glibc)
+import Glibc
+#endif
 
 public enum ConfigStoreError: Error, Equatable {
     case unreadable(String)
@@ -10,11 +13,20 @@ public enum AtomicFile {
         try fileManager.createDirectory(at: folder, withIntermediateDirectories: true)
         let temp = folder.appendingPathComponent(".\(url.lastPathComponent).\(UUID().uuidString).tmp")
         try data.write(to: temp, options: .atomic)
+        #if !canImport(Darwin)
+        // swift-corelibs-foundation's replaceItemAt is unreliable on Linux,
+        // where only the logic tests run. rename(2) is atomic on one volume.
+        if rename(temp.path, url.path) != 0 {
+            try? fileManager.removeItem(at: temp)
+            throw CocoaError(.fileWriteUnknown)
+        }
+        #else
         if fileManager.fileExists(atPath: url.path) {
             _ = try fileManager.replaceItemAt(url, withItemAt: temp)
         } else {
             try fileManager.moveItem(at: temp, to: url)
         }
+        #endif
     }
 }
 

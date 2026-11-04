@@ -31,6 +31,9 @@ final class LauncherModel {
     var settingsGraceUntil: Date?
     var allowQuit: Bool
     var revision: Int
+    /// The child's "Make it mine" sheet. It only edits `lookDraft`.
+    var lookPickerOpen: Bool
+    var lookDraft: HomeLook?
 
     @ObservationIgnored var store: ConfigStore
     @ObservationIgnored var onLaunch: (Tile) -> Void = { _ in }
@@ -55,6 +58,8 @@ final class LauncherModel {
         settingsGraceUntil = nil
         allowQuit = false
         revision = 0
+        lookPickerOpen = false
+        lookDraft = nil
     }
 
     var isEnforcing: Bool {
@@ -147,6 +152,9 @@ final class LauncherModel {
 
     func presentParentGate() {
         guard gate == .hidden else { return }
+        if lookPickerOpen {
+            closeLookPicker(save: false)
+        }
         parentError = nil
         gate = hasParentPassword ? .enterPassword : .createPassword
         revision += 1
@@ -300,6 +308,57 @@ final class LauncherModel {
         persistConfig(next)
         refreshInstallation()
         gate = .settings
+    }
+
+    // MARK: - Home screen look
+
+    /// What the home screen shows right now: the live preview while the
+    /// child is picking, otherwise the saved look.
+    var displayedLook: HomeLook {
+        lookDraft ?? config.look
+    }
+
+    var childCanCustomizeLook: Bool {
+        LookPermission.childCanCustomize(config: config, configHasError: loadError != nil)
+    }
+
+    func openLookPicker() {
+        guard gate == .hidden, childCanCustomizeLook, !lookPickerOpen else { return }
+        lookDraft = config.look
+        lookPickerOpen = true
+        revision += 1
+    }
+
+    func previewLook(_ look: HomeLook) {
+        guard lookPickerOpen else { return }
+        lookDraft = look
+        revision += 1
+    }
+
+    func closeLookPicker(save: Bool) {
+        guard lookPickerOpen else { return }
+        let draft = lookDraft
+        lookDraft = nil
+        lookPickerOpen = false
+        revision += 1
+        guard save, let draft, childCanCustomizeLook,
+              let next = LookPermission.applyingChildLook(draft, to: config),
+              next != config else { return }
+        persistConfig(next)
+        if parentError != nil {
+            parentError = nil
+            showBanner(KidCopy.lookNotSaved)
+        }
+    }
+
+    func setChildCanCustomizeLook(_ allowed: Bool) {
+        var next = config
+        next.childCanCustomizeLook = allowed
+        persistConfig(next)
+    }
+
+    func resetLook() {
+        persistConfig(LookPermission.resettingLook(config))
     }
 
     func beginPanel() {

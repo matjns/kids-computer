@@ -219,6 +219,7 @@ The plist lives at `~/Library/LaunchAgents/com.kidscomputer.launcher.plist`. `Ke
 Control-Option-Command-P, then the password.
 
 - **Greeting.** Type a name if you want "Good morning, Sam". Leave it blank and no name is shown. The launcher never fills this in for you.
+- **Home screen look.** **Let the child customize the look** is on by default. It shows a **Make it mine** button on the home screen where the child picks a background color, a faint pattern, and tile colors. It changes colors only, never activities, limits, the lock, or files, and it doesn't need the password. Turn it off to hide the button. **Reset look** puts the original look back.
 - **Desktop lock.** Leave this on. Turn it off while you install an app or change System Settings, then turn it on again. While it is off, a banner on the home screen says the lock is paused.
 - **Warn minutes.** Default is 5. The Mac beeps and shows a note that many minutes before a daily limit runs out.
 - **Activities.** Up and Down change the order. Edit changes the name, the bundle id, the path, the color, the picture, and the daily limit. Remove deletes a tile. Add an activity makes a new one. Restore the starter activities puts the six tiles back and saves the old file as `tiles.json.bak`. The greeting and the password stay.

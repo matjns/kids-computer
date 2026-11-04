@@ -200,6 +200,24 @@ private struct SettingsCard: View {
                         }
                 }
 
+                group("Home screen look") {
+                    Toggle("Let the child customize the look", isOn: Binding(
+                        get: { model.config.childCanCustomizeLook },
+                        set: { model.setChildCanCustomizeLook($0) }
+                    ))
+                    Text("Shows a Make it mine button on the home screen for picking a background color, a pattern, and tile colors. It can't change activities, time limits, the lock, files, or quitting.")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    HStack {
+                        Text(lookSummary)
+                            .font(.system(size: 14))
+                        Spacer()
+                        Button("Reset look") { model.resetLook() }
+                            .disabled(model.config.look.isStandard)
+                    }
+                }
+
                 group("Desktop lock") {
                     Toggle("Keep the desktop locked", isOn: Binding(
                         get: { model.config.kioskEnabled },
@@ -341,6 +359,17 @@ private struct SettingsCard: View {
             protectedText = model.config.extraProtectedBundleIDs.joined(separator: "\n")
             loginNote = LoginItemController.describe(LoginItemController.status)
         }
+    }
+
+    private var lookSummary: String {
+        let look = model.config.look
+        if look.isStandard { return "Now: the standard look." }
+        let tiles: String
+        switch look.tileColors {
+        case .activityColors: tiles = "each activity's own color"
+        case .all(let accent): tiles = "\(accent.kidName.lowercased()) tiles"
+        }
+        return "Now: \(look.background.kidName) background, \(look.pattern.kidName.lowercased()) pattern, \(tiles)."
     }
 
     private func activityDetail(_ tile: Tile) -> String {
