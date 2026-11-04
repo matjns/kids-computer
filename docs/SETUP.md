@@ -27,7 +27,7 @@ Chess should be ready immediately. Race Time is ready after you install that app
 
 Read this before you rely on it.
 
-- The Dock, menu bar, Command-Tab, Force Quit, and logout blocks apply while the launcher is the front app. They do not stick while Chess or Race Time is in front. Command-Tab from inside a game can flash another app. The launcher then closes apps that are not on the list and comes back.
+- The Dock, menu bar, Command-Tab, Force Quit, and logout blocks apply while the launcher is the front app. They do not stick while Chess or Race Time is in front. macOS only honors those blocks for the app in front, so when an activity opens in a window, the account's normal Dock comes back. To cover that, the launcher sets the child's Dock to hide automatically. See **Keep the Dock out of the way** in section 5. Command-Tab from inside a game can flash another app. The launcher then closes apps that are not on the list and comes back.
 - YouTube in Safari is not on the list, so the launcher tries to close Safari. That is not a web filter. A site inside an app you approved would still load. Do not put a browser on the tile list. Use Screen Time's web limits as well.
 - A full-screen game can cover the "five minutes left" note. The Mac beeps, and the launcher still closes the game when the time is used up.
 - Finder is hidden, not quit. macOS starts Finder again the moment it is quit, and quitting it in a loop flashes the desktop.
@@ -214,6 +214,38 @@ Log out and log back in as the child. The launcher should fill the screen withou
 
 The plist lives at `~/Library/LaunchAgents/com.kidscomputer.launcher.plist`. `KeepAlive` is set so a successful quit stays quit, and a crash starts again after about 10 seconds.
 
+### Keep the Dock out of the way
+
+**Why the Dock shows up.** The launcher asks macOS to hide the Dock, but macOS only does that while the launcher is the front app. When the child opens an activity, such as Draw With Me or Chess, that activity is in front. The launcher's request no longer applies, and macOS goes back to this account's own Dock setting. A new account's Dock is set to always show, so it appears at the bottom of the screen, on top of the launcher behind the activity's window. No app can hide the Dock for a different app that is in front. The setting that works everywhere is the account's own Dock setting.
+
+**What the launcher does.** While the desktop lock is on, the launcher checks this account's Dock setting each time it starts. If **Automatically hide and show the Dock** is off, it turns it on and restarts the Dock once. The screen flickers for a moment when that happens, and `launcher.log` says "Turned on Dock auto-hide for this account." It only changes the account you are logged in as.
+
+**One-time steps, as the child:**
+
+1. Log in as the child. Open Kids Computer with the desktop lock on. The Dock auto-hide setting is turned on for you. Or, to set it yourself, open System Settings → Desktop & Dock and turn on **Automatically hide and show the Dock**. In Terminal the same thing is:
+
+   ```bash
+   defaults write com.apple.dock autohide -bool true; killall Dock
+   ```
+
+2. Optional: stop the Dock from sliding up when the pointer touches the bottom edge. This makes it wait 1000 seconds:
+
+   ```bash
+   defaults write com.apple.dock autohide-delay -float 1000; killall Dock
+   ```
+
+   To undo it: `defaults delete com.apple.dock autohide-delay; killall Dock`
+3. Optional: hide the menu bar inside activities too. In System Settings → Control Center, set **Automatically hide and show the menu bar** to **Always**.
+4. Let activities open filling the screen. In parent settings, under **Desktop lock**, click **Allow it in Settings** next to the Accessibility line. The lock pauses for five minutes. In System Settings → Privacy & Security → Accessibility, turn on **Kids Computer**. After that, each activity's window is resized to fill the screen (not macOS full screen) a moment after it opens. Without this permission, activities open at their normal window size. The launcher doesn't use full-screen Spaces, because the child could then swipe between Spaces.
+
+To put the Dock back to always showing on that account:
+
+```bash
+defaults write com.apple.dock autohide -bool false; killall Dock
+```
+
+The launcher will turn auto-hide back on the next time it starts with the lock on. Turn the desktop lock off first if you want the Dock to stay visible.
+
 ## 6. Parent settings
 
 Control-Option-Command-P, then the password.
@@ -288,6 +320,7 @@ This project was written on a machine that cannot compile AppKit. `./build.sh te
 - The release zip or `./build.sh` produces **Kids Computer.app**, and it opens on macOS 14 or newer. `lipo -info` on the binary inside the app lists both `arm64` and `x86_64`.
 - Gatekeeper: first open, Open Anyway, and `xattr -cr` if macOS calls it damaged.
 - The window covers the whole screen, including a second display if you have one. The Dock and menu bar are gone while the launcher is in front.
+- Open Draw With Me or Chess from a tile. The Dock should stay hidden at the bottom of the screen and slide up only if the pointer touches the bottom edge. With Accessibility allowed, the activity's window should fill the screen a moment after it opens.
 - Command-Tab, Command-Option-Escape, Command-H, Command-W, and Command-Q do nothing on the launcher. Logout from the Apple menu is unavailable there too.
 - The greeting has no name until you set one. None of the tiles say the child's name.
 - Chess opens and, when you quit Chess, the launcher comes back to the front.
@@ -309,6 +342,7 @@ This project was written on a machine that cannot compile AppKit. `./build.sh te
 
 | What you see | What to try |
 | --- | --- |
+| The Dock shows while an activity is open | Dock auto-hide is off for this account. Turn the desktop lock on and restart the launcher, or run `defaults write com.apple.dock autohide -bool true; killall Dock` as the child. See **Keep the Dock out of the way**. |
 | The desktop is visible | The launcher is not running, or the lock is paused. Open the app, or log out and back in. Read `launcher.log`. |
 | macOS closed a system window the child needs | Copy the bundle id from `launcher.log` into **Apps the lock should ignore**, or turn the lock off while you deal with it. |
 | Login item does nothing | The app must live in `/Applications` as a real `.app` from `./build.sh`. Approve it in Login Items. Install the LaunchAgent as the child, not as you. |

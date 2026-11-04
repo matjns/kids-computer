@@ -106,6 +106,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private func applyKiosk() {
         kiosk.apply(enforcing: model.isEnforcing)
+        if model.isEnforcing {
+            // The launcher's hide-the-Dock option only works while the
+            // launcher is in front. Auto-hide covers the activities too.
+            DockAutohide.ensureOn()
+        }
     }
 
     private func rebuildWindows() {

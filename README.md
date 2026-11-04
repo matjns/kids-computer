@@ -88,7 +88,7 @@ GitHub Actions builds and runs those tests on a Mac for every push and pull requ
 
 ## What the lock does and does not do
 
-While Kids Computer is the front app, it asks macOS to hide the Dock and the menu bar, and to block Command-Tab, Force Quit, Hide, and logout. Inside Chess or Race Time those blocks do not stick. The watcher then closes anything that is not on the list, and the launcher comes back when the activity quits. Screen Time is the backstop for the web and for the times the launcher is not in front. [docs/SETUP.md](docs/SETUP.md) says that plainly.
+While Kids Computer is the front app, it asks macOS to hide the Dock and the menu bar, and to block Command-Tab, Force Quit, Hide, and logout. Inside Chess or Race Time those blocks do not stick, because macOS only applies them to the app in front. So the launcher also sets the child's account to hide the Dock automatically, and, if you allow it under Accessibility, it sizes each activity's window to fill the screen. The watcher then closes anything that is not on the list, and the launcher comes back when the activity quits. Screen Time is the backstop for the web and for the times the launcher is not in front. [docs/SETUP.md](docs/SETUP.md) says that plainly.
 
 Settings, usage, and the log for each Mac account live in `~/Library/Application Support/Kids Computer/`. The login watchdog, if you turn it on, is `~/Library/LaunchAgents/com.kidscomputer.launcher.plist`.
 

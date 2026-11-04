@@ -23,6 +23,7 @@ let package = Package(
             dependencies: ["KidsComputerCore"],
             linkerSettings: [
                 .linkedFramework("AppKit", .when(platforms: [.macOS])),
+                .linkedFramework("ApplicationServices", .when(platforms: [.macOS])),
                 .linkedFramework("SwiftUI", .when(platforms: [.macOS])),
                 .linkedFramework("ServiceManagement", .when(platforms: [.macOS])),
                 .linkedFramework("Security", .when(platforms: [.macOS])),

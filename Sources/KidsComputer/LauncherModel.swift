@@ -380,6 +380,13 @@ final class LauncherModel {
         SMAppService.openSystemSettingsLoginItems()
     }
 
+    func pauseForAccessibilitySettings() {
+        settingsGraceUntil = Date().addingTimeInterval(5 * 60)
+        revision += 1
+        onEnforcementChanged()
+        WindowFiller.askForPermission()
+    }
+
     func importIcon(from source: URL, tileID: String) throws -> String {
         try store.prepare()
         let ext = source.pathExtension.isEmpty ? "png" : source.pathExtension

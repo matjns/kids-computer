@@ -223,9 +223,25 @@ private struct SettingsCard: View {
                         get: { model.config.kioskEnabled },
                         set: { model.setKioskEnabled($0) }
                     ))
-                    Text("While this is on, the Dock and menu bar stay hidden and apps that aren't in the list get closed. Turn it off while you install something, then turn it back on.")
+                    Text("While this is on, the Dock and menu bar are hidden on the home screen and apps that aren't in the list get closed. Turn it off while you install something, then turn it back on.")
                         .font(.system(size: 14))
                         .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("macOS only hides the Dock for the app in front. So this account's Dock is set to hide automatically, and it slides up only if the pointer touches the bottom edge.")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    HStack {
+                        Text(WindowFiller.isAllowed
+                             ? "Activities open filling the screen."
+                             : "To open activities filling the screen, allow Kids Computer under Accessibility.")
+                            .font(.system(size: 14))
+                            .id(model.revision)
+                        Spacer()
+                        if !WindowFiller.isAllowed {
+                            Button("Allow it in Settings") { model.pauseForAccessibilitySettings() }
+                        }
+                    }
                     Stepper(value: Binding(
                         get: { model.config.warnBeforeMinutes },
                         set: { model.setWarnBeforeMinutes($0) }

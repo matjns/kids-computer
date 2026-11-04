@@ -40,8 +40,12 @@ final class AppEnforcer: NSObject {
         closeOtherActivities(except: tile)
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = true
-        NSWorkspace.shared.openApplication(at: URL(fileURLWithPath: path), configuration: configuration) { [weak self] _, error in
+        NSWorkspace.shared.openApplication(at: URL(fileURLWithPath: path), configuration: configuration) { [weak self] opened, error in
+            let pid = opened?.processIdentifier
             DispatchQueue.main.async {
+                if let pid, self?.model.isEnforcing == true {
+                    WindowFiller.fillSoon(pid: pid)
+                }
                 if let error {
                     self?.model.showBanner(KidCopy.failedToOpen(title: tile.title))
                     FileLog.append("Open failed for \(tile.title): \(error.localizedDescription)")
