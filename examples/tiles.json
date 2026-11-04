@@ -1,0 +1,65 @@
+{
+  "extraProtectedBundleIDs" : [],
+  "greetingName" : "",
+  "kioskEnabled" : true,
+  "tiles" : [
+    {
+      "accent" : "orange",
+      "applicationPath" : "/Applications/RaceTime.app",
+      "bundleIdentifier" : "com.racetime.fsae",
+      "enabled" : true,
+      "id" : "race-time",
+      "subtitle" : "Physics and racing",
+      "symbolName" : "flag.checkered",
+      "title" : "Race Time"
+    },
+    {
+      "accent" : "teal",
+      "bundleIdentifier" : "com.kidscomputer.typingtutor",
+      "enabled" : true,
+      "id" : "typing-tutor",
+      "subtitle" : "Learn the keys",
+      "symbolName" : "keyboard",
+      "title" : "Typing Tutor"
+    },
+    {
+      "accent" : "purple",
+      "applicationPath" : "/System/Applications/Chess.app",
+      "bundleIdentifier" : "com.apple.Chess",
+      "enabled" : true,
+      "id" : "chess",
+      "subtitle" : "A classic board game",
+      "symbolName" : "crown.fill",
+      "title" : "Chess"
+    },
+    {
+      "accent" : "blue",
+      "bundleIdentifier" : "com.kidscomputer.mathquiz",
+      "enabled" : true,
+      "id" : "math-quiz",
+      "subtitle" : "Numbers and puzzles",
+      "symbolName" : "function",
+      "title" : "Math Quiz"
+    },
+    {
+      "accent" : "green",
+      "bundleIdentifier" : "com.kidscomputer.reading",
+      "enabled" : true,
+      "id" : "reading",
+      "subtitle" : "Comprehension game",
+      "symbolName" : "book.fill",
+      "title" : "Reading"
+    },
+    {
+      "accent" : "pink",
+      "bundleIdentifier" : "com.kidscomputer.drawing",
+      "enabled" : true,
+      "id" : "drawing",
+      "subtitle" : "Sketch and create",
+      "symbolName" : "paintbrush.pointed.fill",
+      "title" : "Drawing Helper"
+    }
+  ],
+  "version" : 1,
+  "warnBeforeMinutes" : 5
+}

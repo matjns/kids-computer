@@ -1,0 +1,10 @@
+.DS_Store
+.build/
+.swiftpm/
+.swift-version
+build/
+dist/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+Package.resolved

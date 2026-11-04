@@ -1,0 +1,130 @@
+name: macOS
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish, such as v1.0.0. Leave empty to build and test only."
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: macos-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          if [ -d /Applications/Xcode.app ]; then
+            sudo xcode-select -s /Applications/Xcode.app
+          fi
+          xcodebuild -version
+          swift --version
+          xcrun --show-sdk-path
+
+      - name: Reject the old prototype name
+        shell: bash
+        run: |
+          needle="$(printf '%s%s' 'del' 'la')"
+          if git grep -i -n -e "$needle" -- .; then
+            echo "Found a prototype name that must not be in this repo."
+            exit 1
+          fi
+
+      - name: Test
+        run: ./build.sh test
+
+      - name: Build universal app
+        run: ./build.sh
+
+      - name: Check the app
+        run: |
+          APP="build/Kids Computer.app"
+          BIN="$APP/Contents/MacOS/KidsComputer"
+          test -x "$BIN"
+          lipo -info "$BIN"
+          plutil -lint "$APP/Contents/Info.plist"
+          ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist")"
+          NAME="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleName' "$APP/Contents/Info.plist")"
+          EXEC="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Contents/Info.plist")"
+          test "$ID" = "com.kidscomputer.launcher"
+          test "$NAME" = "Kids Computer"
+          test "$EXEC" = "KidsComputer"
+          test -f dist/KidsComputer-mac-universal.zip
+          test -f dist/README-mac.txt
+          unzip -l dist/KidsComputer-mac-universal.zip
+
+      - name: Publish GitHub Release from a version tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="$GITHUB_REF_NAME"
+          NOTES="$(cat <<'EOF'
+          Unsigned universal macOS app (Apple silicon and Intel) for macOS 14 or later.
+
+          Download KidsComputer-mac-universal.zip and read README-mac.txt before the first open. macOS Gatekeeper will ask you to confirm an unsigned app: right-click, choose Open, or use System Settings → Privacy & Security → Open Anyway. If macOS says the app is damaged, run: xattr -cr "/Applications/Kids Computer.app"
+          EOF
+          )"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" \
+              dist/KidsComputer-mac-universal.zip \
+              dist/README-mac.txt \
+              --clobber
+          else
+            gh release create "$TAG" \
+              dist/KidsComputer-mac-universal.zip \
+              dist/README-mac.txt \
+              --title "Kids Computer $TAG" \
+              --notes "$NOTES" \
+              --target "$GITHUB_SHA"
+          fi
+
+      - name: Publish GitHub Release from a manual run
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ inputs.tag }}"
+          if [ -z "$TAG" ]; then
+            echo "No release tag. Build and tests already ran."
+            exit 0
+          fi
+          case "$TAG" in
+            v*) ;;
+            *)
+              echo "The release tag must start with v (got: $TAG)."
+              exit 1
+              ;;
+          esac
+          NOTES="$(cat <<'EOF'
+          Unsigned universal macOS app (Apple silicon and Intel) for macOS 14 or later.
+
+          Download KidsComputer-mac-universal.zip and read README-mac.txt before the first open. macOS Gatekeeper will ask you to confirm an unsigned app: right-click, choose Open, or use System Settings → Privacy & Security → Open Anyway. If macOS says the app is damaged, run: xattr -cr "/Applications/Kids Computer.app"
+          EOF
+          )"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" \
+              dist/KidsComputer-mac-universal.zip \
+              dist/README-mac.txt \
+              --clobber
+          else
+            gh release create "$TAG" \
+              dist/KidsComputer-mac-universal.zip \
+              dist/README-mac.txt \
+              --title "Kids Computer $TAG" \
+              --notes "$NOTES" \
+              --target "$GITHUB_SHA"
+          fi
